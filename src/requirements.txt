@@ -1,0 +1,5 @@
+python-socketio==1.6.1
+eventlet==0.20.0
+gevent==1.2.0
+gevent-websocket==0.9.5
+gunicorn==19.6.0

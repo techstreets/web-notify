@@ -2,17 +2,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, print_function
 
+import os
+import logging
 import socketio
 from flask import Flask, request, render_template, jsonify
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
-NAMESPACE = '/wsock'
+NAMESPACE = os.getenv('SOCKET_NAMESPACE', '/wsock')
 # async_mode = None
 async_mode = 'gevent'
 
 sio = socketio.Server(logger=True, async_mode=async_mode)
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'secret!')
 app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
 
 
@@ -33,19 +38,19 @@ def app_push(room=None):
         }), 400
     content = request.get_json().copy()
     content['room'] = room
-    print('Push content to %s: %r' % (room, content))
+    logger.info('Push content to %s: %r', room, content)
     sio.emit('push', content, room=room, namespace=NAMESPACE)
     return jsonify({})
 
 
 @sio.on('connect', namespace=NAMESPACE)
 def sio_connect(sid, environ):
-    print('Client connected', sid, len(all_clients()))
+    logger.info('Client connected: %r (%d)', sid, len(all_clients()))
 
 
 @sio.on('disconnect', namespace=NAMESPACE)
 def sio_disconnect(sid):
-    print('Client disconnected', sid, len(all_clients()))
+    logger.info('Client connected: %r (%d)', sid, len(all_clients()))
 
 
 @sio.on('join', namespace=NAMESPACE)
@@ -55,7 +60,7 @@ def sio_join(sid, message):
     content = {
         'data': 'In room: %r' % room,
     }
-    print('Client %r joining room: %r' % (sid, room))
+    logger.info('Client %r joining room: %r', sid, room)
     sio.emit('push', content, room=sid, namespace=NAMESPACE)
 
 
@@ -66,13 +71,13 @@ def sio_leave(sid, message):
     content = {
         'data': 'Not in room: %r' % room,
     }
-    print('Client %r leaving room: %r' % (sid, room))
+    logger.info('Client %r leaving room: %r', sid, room)
     sio.emit('push', content, room=sid, namespace=NAMESPACE)
 
 
 @sio.on('push', namespace=NAMESPACE)
 def sio_push(sid, message):
-    print('Message from client %s: %r' % (sid, message))
+    logger.info('Message from client %s: %r', sid, message)
 
 
 if __name__ == '__main__':

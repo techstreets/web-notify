@@ -3,5 +3,10 @@ This is small server app that provides server push notifications to the web clie
 
 
 ## RUN
-cd src
-gunicorn --config=.././gunicorn/gunicorn_config.py app:app
+~~~~~
+# if you using docker just `make`
+source gunicorn/env.sh; gunicorn --config=gunicorn/gunicorn_config.py app:app
+# add client to some room i.e. 450
+# push from your server
+curl -v -H "Content-Type: application/json" -X POST -d '{"data":"Wellcome to web-notify"}' http://localhost:5000/push/450
+~~~~~

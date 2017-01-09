@@ -9,13 +9,13 @@
             var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/wsock');
 
             socket.on('connect', function() {
-                $('#log').append('I\'m connected');
+                $('#log').prepend('I\'m connected');
             });
             socket.on('disconnect', function() {
-                $('#log').append('<br>Disconnected');
+                $('#log').prepend('Disconnected<br>');
             });
             socket.on('push', function(msg) {
-                $('#log').append('<br>' + $('<div/>').text(msg.data).html());
+                $('#log').prepend($('<div/>').text(msg.data).html() + '<br>');
             });
 
             $('form#emit').submit(function(event) {
